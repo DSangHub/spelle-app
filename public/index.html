@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spelle — Read any comment. Reply in any language.</title>
+<meta name="description" content="Copy a social comment, paste it into Spelle, read it in your language, write a reply in yours, and copy a spell-checked translation back to the original post. No API keys." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,680&family=Outfit:wght@360;460;560;650&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #1a1714;
+    --ink-soft: #4a433c;
+    --paper: #f6f1e8;
+    --paper-2: #fffdf8;
+    --line: #e4d9c8;
+    --mark: #d4522a;
+    --mark-soft: #f6e3d8;
+    --ready: #1d6b45;
+    --ready-soft: #e5f3eb;
+    --chip: #efe7da;
+    --shadow: 0 18px 50px rgba(48, 32, 16, 0.08);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 90% -10%, #f3d7c8 0%, transparent 55%),
+      radial-gradient(700px 380px at -10% 20%, #efe6c8 0%, transparent 50%),
+      var(--paper);
+    font-family: Outfit, sans-serif;
+    font-weight: 360;
+    line-height: 1.45;
+  }
+  a { color: inherit; }
+  .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 0 8px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--ink); color: #f6f1e8;
+    display: grid; place-items: center;
+    font-family: Fraunces, serif; font-weight: 680; font-size: 20px;
+  }
+  .brand b { font-family: Fraunces, serif; font-size: 22px; letter-spacing: -0.03em; }
+  .nav-links { display: flex; gap: 18px; align-items: center; font-size: 14px; }
+  .nav-links a { text-decoration: none; color: var(--ink-soft); }
+  .btn {
+    border: 0; cursor: pointer; text-decoration: none;
+    background: var(--ink); color: #f8f3ea;
+    border-radius: 999px; padding: 11px 16px;
+    font-family: inherit; font-weight: 560; font-size: 14px;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn.ready { background: var(--ready); }
+  .btn:disabled { opacity: 0.55; cursor: wait; }
+  .hero { display: grid; grid-template-columns: 1fr 1.05fr; gap: 36px; align-items: start; padding: 28px 0 18px; }
+  .kicker {
+    display: inline-flex; gap: 8px; align-items: center;
+    background: var(--mark-soft); color: #8a3418;
+    border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 560;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  h1 {
+    font-family: Fraunces, serif; font-weight: 560;
+    font-size: clamp(40px, 5vw, 68px); line-height: 0.96;
+    letter-spacing: -0.035em; margin: 14px 0 12px;
+  }
+  h1 em { font-style: italic; color: var(--mark); }
+  .lede { font-size: 18px; color: var(--ink-soft); max-width: 520px; margin: 0 0 18px; }
+  .points { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; }
+  .points li {
+    background: var(--paper-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 11px; font-size: 13px;
+  }
+  .studio {
+    background: var(--paper-2); border: 1px solid var(--line);
+    border-radius: 22px; box-shadow: var(--shadow); padding: 16px;
+  }
+  .studio h2 { font-family: Fraunces, serif; font-size: 22px; margin: 4px 4px 12px; letter-spacing: -0.03em; }
+  label { display: block; font-size: 12px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); margin: 10px 4px 6px; }
+  textarea, select {
+    width: 100%; border: 1px solid var(--line); background: #fff;
+    border-radius: 14px; padding: 12px; font: inherit; color: var(--ink); resize: vertical;
+  }
+  textarea:focus, select:focus { outline: 2px solid #efd3c6; border-color: var(--mark); }
+  .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .out {
+    margin-top: 12px; background: var(--ready-soft); border-radius: 16px; padding: 12px;
+    min-height: 74px; white-space: pre-wrap;
+  }
+  .out.empty { background: var(--chip); color: var(--ink-soft); }
+  .lang-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 4px 0; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 560; color: var(--ink); cursor: pointer; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .track {
+    width: 38px; height: 22px; border-radius: 999px; background: var(--chip); border: 1px solid var(--line);
+    position: relative; flex: none;
+  }
+  .track::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--ink); transition: transform 0.15s ease;
+  }
+  .switch input:checked + .track { background: var(--ink); border-color: var(--ink); }
+  .switch input:checked + .track::after { transform: translateX(16px); background: #f6f1e8; }
+  .switch input:focus-visible + .track { outline: 2px solid #efd3c6; }
+  .steps, .fit, .note { padding: 28px 0; }
+  .steps h2, .fit h2, .note h2 {
+    font-family: Fraunces, serif; font-size: 34px; letter-spacing: -0.03em; margin: 0 0 14px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .card {
+    background: rgba(255,253,248,0.8); border: 1px solid var(--line);
+    border-radius: 18px; padding: 16px; min-height: 150px;
+  }
+  .num { font-family: Fraunces, serif; color: var(--mark); font-size: 22px; }
+  .card h3 { margin: 6px 0; font-size: 16px; }
+  .card p, .fit p, .note p { margin: 0; color: var(--ink-soft); font-size: 14.5px; }
+  .fit-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px; }
+  .langs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .langs span { background: var(--chip); border-radius: 999px; padding: 5px 9px; font-size: 12px; }
+  footer { padding: 10px 0 32px; color: var(--ink-soft); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 860px) {
+    .hero, .grid, .fit-grid, .row { grid-template-columns: 1fr; }
+    .nav-links a { display: none; }
+    h1 { font-size: 42px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="#top"><span class="mark">S</span><b>Spelle</b></a>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#who">Who it’s for</a>
+        <a class="btn" href="#studio">Try the loop</a>
+      </div>
+    </nav>
+
+    <header class="hero" id="top">
+      <div>
+        <span class="kicker">spelle.app · no API keys</span>
+        <h1>Read the comment. Reply in <em>your</em> language.</h1>
+        <p class="lede">Copy a comment from the app you’re already in. Paste it here. Spelle translates it, you write the reply the way you think, and Spelle hands back a spell-checked version ready to paste on the original post.</p>
+        <ul class="points">
+          <li>Any language in</li>
+          <li>Read it in yours</li>
+          <li>Write the reply in yours</li>
+          <li>Paste a polished reply back</li>
+        </ul>
+        <a class="btn" href="#studio">Open the paste desk</a>
+      </div>
+
+      <section class="studio" id="studio">
+        <h2>Paste desk</h2>
+        <label for="source">1 · Comment you copied</label>
+        <textarea id="source" rows="4" placeholder="Paste the comment here, in whatever language it was written.">Esta foto del atardecer está increíble, pero el pie de foto tiene la fecha mal.</textarea>
+
+        <div class="lang-bar">
+          <span style="font-size:12px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft)">Languages</span>
+          <label class="switch">
+            <input id="allLangs" type="checkbox" />
+            <span class="track"></span>
+            All languages
+          </label>
+        </div>
+        <div class="row">
+          <div>
+            <label for="mine">I read</label>
+            <select id="mine"></select>
+          </div>
+          <div>
+            <label for="write">I write</label>
+            <select id="write"></select>
+          </div>
+          <div>
+            <label for="post">Post back in</label>
+            <select id="post"></select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="readBtn" type="button">Translate so I can read it</button>
+        </div>
+        <div class="out empty" id="reading">Your reading version shows up here.</div>
+
+        <label for="reply">2 · Your reply, in the language you think in</label>
+        <textarea id="reply" rows="3" placeholder="Write the reply here. Spelling does not have to be perfect.">You’re right — the date should be October 2, not October 20. I’ll fix the caption. Thanks for catching it.</textarea>
+        <div class="actions">
+          <button class="btn ready" id="prepBtn" type="button">Translate, check, and ready it</button>
+          <button class="btn ghost" id="copyBtn" type="button" disabled>Copy reply</button>
+        </div>
+        <div class="out empty" id="ready">The paste-back reply shows up here.</div>
+        <p class="status" id="status">Looks for the Spelle backend first. If the Grok key is not set, it uses the browser preview.</p>
+      </section>
+    </header>
+
+    <section class="steps" id="how">
+      <h2>Two apps. One paste each way.</h2>
+      <div class="grid">
+        <article class="card"><div class="num">01</div><h3>Copy there</h3><p>Long-press the comment in X, Facebook, Instagram, TikTok, Reddit, YouTube, or wherever you already are.</p></article>
+        <article class="card"><div class="num">02</div><h3>Read here</h3><p>Paste it into Spelle. It comes back in the language you actually read, so you are not guessing the tone.</p></article>
+        <article class="card"><div class="num">03</div><h3>Answer yours</h3><p>Write the reply in Spanish, Vietnamese, Arabic, English — whichever one you think in. Short is fine.</p></article>
+        <article class="card"><div class="num">04</div><h3>Paste back</h3><p>Spelle translates it into the thread’s language, checks spelling, and leaves it ready to copy onto the original post.</p></article>
+      </div>
+    </section>
+
+    <section class="fit" id="who">
+      <h2>Built for the reply you would have skipped.</h2>
+      <div class="fit-grid">
+        <article class="card">
+          <h3>You can follow the thread. You should not have to post in it.</h3>
+          <p>Spelle is the bridge for people who are not fluent in the language of the comment. No new social account. No API key. No browser extension fighting the app. You stay in the app you opened, and Spelle only holds the text long enough to translate and check it.</p>
+          <div class="langs" id="langChips"></div>
+        </article>
+        <article class="card">
+          <h3>What Spelle does not do</h3>
+          <p>It does not post for you. Social apps do not allow a third app to drop a reply into a thread. Copy and paste is the reliable path, and it is the whole product. It also does not ask you to bring an AI key. The key stays with Spelle.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="note">
+      <h2>Spell-checked means ready to send.</h2>
+      <p>A raw machine translation still looks like a raw machine translation. The last step is a spelling and polish pass: names stay names, the reply stays as long as you wrote it, and slang is only softened if you ask. Then one tap copies it.</p>
+    </section>
+
+    <footer>
+      <span>spelle.app · copy, read, reply, paste back.</span>
+      <span>Not the town-notice app for Spelle, Germany.</span>
+    </footer>
+  </div>
+<script>
+const COMMON = [
+  ["en", "English"], ["es", "Spanish"], ["vi", "Vietnamese"], ["zh-CN", "Chinese"],
+  ["ar", "Arabic"], ["hi", "Hindi"], ["tl", "Tagalog"], ["ko", "Korean"],
+  ["pt", "Portuguese"], ["fr", "French"], ["ru", "Russian"], ["ja", "Japanese"],
+  ["de", "German"], ["uk", "Ukrainian"], ["fa", "Persian"]
+];
+const ALL = [
+  ["af", "Afrikaans"], ["sq", "Albanian"], ["am", "Amharic"], ["ar", "Arabic"],
+  ["hy", "Armenian"], ["az", "Azerbaijani"], ["eu", "Basque"], ["be", "Belarusian"],
+  ["bn", "Bengali"], ["bs", "Bosnian"], ["bg", "Bulgarian"], ["my", "Burmese"],
+  ["ca", "Catalan"], ["ceb", "Cebuano"], ["zh-CN", "Chinese (Simplified)"],
+  ["zh-TW", "Chinese (Traditional)"], ["hr", "Croatian"], ["cs", "Czech"],
+  ["da", "Danish"], ["nl", "Dutch"], ["en", "English"], ["eo", "Esperanto"],
+  ["et", "Estonian"], ["fi", "Finnish"], ["fr", "French"], ["gl", "Galician"],
+  ["ka", "Georgian"], ["de", "German"], ["el", "Greek"], ["gu", "Gujarati"],
+  ["ht", "Haitian Creole"], ["ha", "Hausa"], ["he", "Hebrew"], ["hi", "Hindi"],
+  ["hmn", "Hmong"], ["hu", "Hungarian"], ["is", "Icelandic"], ["ig", "Igbo"],
+  ["id", "Indonesian"], ["ga", "Irish"], ["it", "Italian"], ["ja", "Japanese"],
+  ["jw", "Javanese"], ["kn", "Kannada"], ["kk", "Kazakh"], ["km", "Khmer"],
+  ["rw", "Kinyarwanda"], ["ko", "Korean"], ["ku", "Kurdish"], ["ky", "Kyrgyz"],
+  ["lo", "Lao"], ["lv", "Latvian"], ["lt", "Lithuanian"], ["lb", "Luxembourgish"],
+  ["mk", "Macedonian"], ["mg", "Malagasy"], ["ms", "Malay"], ["ml", "Malayalam"],
+  ["mt", "Maltese"], ["mi", "Maori"], ["mr", "Marathi"], ["mn", "Mongolian"],
+  ["ne", "Nepali"], ["no", "Norwegian"], ["ny", "Nyanja"], ["ps", "Pashto"],
+  ["fa", "Persian"], ["pl", "Polish"], ["pt", "Portuguese"], ["pa", "Punjabi"],
+  ["ro", "Romanian"], ["ru", "Russian"], ["sm", "Samoan"], ["gd", "Scots Gaelic"],
+  ["sr", "Serbian"], ["st", "Sesotho"], ["sn", "Shona"], ["sd", "Sindhi"],
+  ["si", "Sinhala"], ["sk", "Slovak"], ["sl", "Slovenian"], ["so", "Somali"],
+  ["es", "Spanish"], ["su", "Sundanese"], ["sw", "Swahili"], ["sv", "Swedish"],
+  ["tl", "Tagalog"], ["tg", "Tajik"], ["ta", "Tamil"], ["tt", "Tatar"],
+  ["te", "Telugu"], ["th", "Thai"], ["tr", "Turkish"], ["tk", "Turkmen"],
+  ["uk", "Ukrainian"], ["ur", "Urdu"], ["ug", "Uyghur"], ["uz", "Uzbek"],
+  ["vi", "Vietnamese"], ["cy", "Welsh"], ["xh", "Xhosa"], ["yi", "Yiddish"],
+  ["yo", "Yoruba"], ["zu", "Zulu"]
+];
+const mine = document.getElementById("mine");
+const write = document.getElementById("write");
+const post = document.getElementById("post");
+const chips = document.getElementById("langChips");
+const allToggle = document.getElementById("allLangs");
+
+function fill(list) {
+  const keep = { mine: mine.value || "en", write: write.value || "en", post: post.value || "es" };
+  for (const sel of [mine, write, post]) sel.replaceChildren();
+  for (const [code, name] of list) {
+    for (const sel of [mine, write, post]) {
+      const o = document.createElement("option");
+      o.value = code; o.textContent = name; sel.appendChild(o);
+    }
+  }
+  mine.value = list.some(([c]) => c === keep.mine) ? keep.mine : "en";
+  write.value = list.some(([c]) => c === keep.write) ? keep.write : "en";
+  post.value = list.some(([c]) => c === keep.post) ? keep.post : "es";
+  chips.replaceChildren();
+  const shown = allToggle.checked ? list : list.slice(0, 12);
+  for (const [, name] of shown) {
+    const s = document.createElement("span");
+    s.textContent = name;
+    chips.appendChild(s);
+  }
+  if (!allToggle.checked) {
+    const more = document.createElement("span");
+    more.textContent = "All languages";
+    chips.appendChild(more);
+  }
+}
+allToggle.addEventListener("change", () => fill(allToggle.checked ? ALL : COMMON));
+fill(COMMON);
+
+async function translate(text, from, to, mode) {
+  if (!text.trim()) throw new Error("Nothing to translate.");
+  try {
+    const res = await fetch("/api/spelle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, from, to, mode })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.text) return data.text;
+    if (res.status !== 503 && res.status !== 404) {
+      throw new Error(data.error || "Spelle could not finish that.");
+    }
+  } catch (err) {
+    if (err instanceof TypeError) {
+      /* opened as a file, or backend is down — use the preview */
+    } else {
+      throw err;
+    }
+  }
+  if (from === to) return text.trim();
+  const url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + encodeURIComponent(from + "|" + to);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Translator is busy. Try again.");
+  const data = await res.json();
+  const out = data.responseData && data.responseData.translatedText;
+  if (!out) throw new Error("No translation came back.");
+  return out;
+}
+function polish(text) {
+  return text.replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1").trim();
+}
+const status = document.getElementById("status");
+document.getElementById("readBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("readBtn");
+  btn.disabled = true; status.textContent = "Translating the comment…";
+  try {
+    const text = await translate(document.getElementById("source").value, post.value, mine.value, "read");
+    const box = document.getElementById("reading");
+    box.textContent = text; box.classList.remove("empty");
+    status.textContent = "Reading version ready.";
+  } catch (err) { status.textContent = err.message; }
+  btn.disabled = false;
+});
+document.getElementById("prepBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("prepBtn");
+  btn.disabled = true; status.textContent = "Translating your reply and checking it…";
+  try {
+    const text = polish(await translate(document.getElementById("reply").value, write.value, post.value, "reply"));
+    const box = document.getElementById("ready");
+    box.textContent = text; box.classList.remove("empty");
+    document.getElementById("copyBtn").disabled = false;
+    status.textContent = "Checked and ready to paste back.";
+  } catch (err) { status.textContent = err.message; }
+  btn.disabled = false;
+});
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const text = document.getElementById("ready").textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    status.textContent = "Copied. Switch back to the original app and paste.";
+  } catch (err) { status.textContent = "Select the reply and copy it."; }
+});
+</script>
+</body>
+</html>
