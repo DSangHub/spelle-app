@@ -1,2 +1,8 @@
+[project]
+name = "spelle"
+version = "0.1.0"
+description = "Paste a comment, translate it, spell-check the reply."
+requires-python = ">=3.12"
+
 [tool.vercel]
 entrypoint = "api.spelle:handler"
