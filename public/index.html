@@ -59,7 +59,8 @@
   }
   .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
   .btn.ready { background: var(--ready); }
-  .btn:disabled { opacity: 0.55; cursor: wait; }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn.busy { cursor: progress; }
   .hero { display: grid; grid-template-columns: 1fr 1.05fr; gap: 36px; align-items: start; padding: 28px 0 18px; }
   .kicker {
     display: inline-flex; gap: 8px; align-items: center;
@@ -339,11 +340,14 @@ document.getElementById("defaultBtn").addEventListener("click", () => {
 
 async function translate(text, from, to, mode) {
   if (!text.trim()) throw new Error("Nothing to translate.");
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
   try {
     const res = await fetch("/api/spelle", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, from, to, mode })
+      body: JSON.stringify({ text, from, to, mode }),
+      signal: ctrl.signal
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok && data.text) return data.text;
@@ -351,11 +355,10 @@ async function translate(text, from, to, mode) {
       throw new Error(data.error || "Spelle could not finish that.");
     }
   } catch (err) {
-    if (err instanceof TypeError) {
-      /* opened as a file, or backend is down — use the preview */
-    } else {
-      throw err;
-    }
+    if (err.name === "AbortError") throw new Error("That took too long. Try a shorter reply.");
+    if (!(err instanceof TypeError)) throw err;
+  } finally {
+    clearTimeout(timer);
   }
   if (from === to) return text.trim();
   const url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + encodeURIComponent(from + "|" + to);
@@ -372,33 +375,51 @@ function polish(text) {
 const status = document.getElementById("status");
 document.getElementById("readBtn").addEventListener("click", async () => {
   const btn = document.getElementById("readBtn");
-  btn.disabled = true; status.textContent = "Translating the comment…";
+  btn.disabled = true; btn.classList.add("busy"); status.textContent = "Translating the comment…";
   try {
     const text = await translate(document.getElementById("source").value, post.value, mine.value, "read");
     const box = document.getElementById("reading");
     box.textContent = text; box.classList.remove("empty");
     status.textContent = "Reading version ready.";
   } catch (err) { status.textContent = err.message; }
-  btn.disabled = false;
+  finally { btn.disabled = false; btn.classList.remove("busy"); }
 });
 document.getElementById("prepBtn").addEventListener("click", async () => {
   const btn = document.getElementById("prepBtn");
-  btn.disabled = true; status.textContent = "Translating your reply and checking it…";
+  const label = btn.textContent;
+  btn.disabled = true; btn.classList.add("busy");
+  status.textContent = "Translating your reply and checking it…";
   try {
-    const text = polish(await translate(document.getElementById("reply").value, write.value, post.value, "reply"));
+    const text = polish(await translate(document.getElementById("reply").value, write.value, post.value, "ready"));
     const box = document.getElementById("ready");
     box.textContent = text; box.classList.remove("empty");
     document.getElementById("copyBtn").disabled = false;
-    status.textContent = "Checked and ready to paste back.";
+    status.textContent = "Checked. Tap Copy reply.";
   } catch (err) { status.textContent = err.message; }
-  btn.disabled = false;
+  finally { btn.disabled = false; btn.classList.remove("busy"); btn.textContent = label; }
 });
 document.getElementById("copyBtn").addEventListener("click", async () => {
-  const text = document.getElementById("ready").textContent;
+  const box = document.getElementById("ready");
+  const text = box.textContent.trim();
+  if (!text || box.classList.contains("empty")) {
+    status.textContent = "Ready the reply first.";
+    return;
+  }
   try {
-    await navigator.clipboard.writeText(text);
-    status.textContent = "Copied. Switch back to the original app and paste.";
-  } catch (err) { status.textContent = "Select the reply and copy it."; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      status.textContent = "Copied. Switch back and paste.";
+      return;
+    }
+    throw new Error("no clipboard");
+  } catch (err) {
+    const range = document.createRange();
+    range.selectNodeContents(box);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    status.textContent = "Long-press the green reply and copy it.";
+  }
 });
 </script>
 </body>
