@@ -52,6 +52,11 @@
   .brand img { height: 34px; width: 34px; border-radius: 10px; object-fit: cover; background: #f6f1e8; }
   .logo { display: block; width: min(520px, 100%); height: auto; margin: 0 0 14px; }
   .nav-links { display: flex; gap: 18px; align-items: center; font-size: 14px; }
+  .site-lang { display: flex; align-items: center; }
+  .site-lang select {
+    width: auto; min-width: 148px; border-radius: 999px; padding: 8px 12px;
+    background: #fff; font-size: 14px; font-weight: 560;
+  }
   .nav-links a { text-decoration: none; color: var(--ink-soft); }
   .btn {
     border: 0; cursor: pointer; text-decoration: none;
@@ -133,6 +138,7 @@
   @media (max-width: 860px) {
     .hero, .grid, .fit-grid, .row { grid-template-columns: 1fr; }
     .nav-links a { display: none; }
+    .site-lang select { min-width: 120px; }
     h1 { font-size: 40px; }
     .steps h2, .fit h2, .note h2 { font-size: 28px; }
   }
@@ -164,110 +170,213 @@
     <nav>
       <a class="brand" href="#top"><img src="/assets/mark.jpg" alt="Spelle" /><b>Spelle</b></a>
       <div class="nav-links">
-        <a href="#how">How it works</a>
-        <a href="#who">Who it’s for</a>
-        <a class="btn" href="#studio">Try the loop</a>
+        <a href="#how" data-i18n="nav.how">How it works</a>
+        <a href="#who" data-i18n="nav.who">Who it’s for</a>
+        <a class="btn" href="#studio" data-i18n="nav.try">Try the loop</a>
+        <div class="site-lang">
+          <select id="siteLang" aria-label="Site language"></select>
+        </div>
       </div>
     </nav>
 
     <header class="hero" id="top">
       <div>
         <img class="logo" src="/logo.jpg" alt="Spelle — letters from many languages merging into one" />
-        <h1>Read the comment. Reply in <em>your</em> language.</h1>
-        <p class="lede">Copy a comment from the app you’re already in. Paste it here. Spelle translates it, you write the reply the way you think, and Spelle hands back a spell-checked version ready to paste on the original post.</p>
+        <h1 data-i18n="hero.title">Read the comment. Reply in <em>your</em> language.</h1>
+        <p class="lede" data-i18n="hero.lede">Copy a comment from the app you’re already in. Paste it here. Spelle translates it, you write the reply the way you think, and Spelle hands back a spell-checked version ready to paste on the original post.</p>
         <ul class="points">
-          <li>Any language in</li>
-          <li>Read it in yours</li>
-          <li>Write the reply in yours</li>
-          <li>Paste a polished reply back</li>
+          <li data-i18n="hero.p1">Any language in</li>
+          <li data-i18n="hero.p2">Read it in yours</li>
+          <li data-i18n="hero.p3">Write the reply in yours</li>
+          <li data-i18n="hero.p4">Paste a polished reply back</li>
         </ul>
-        <a class="btn" href="#studio">Open the paste desk</a>
+        <a class="btn" href="#studio" data-i18n="hero.open">Open the paste desk</a>
       </div>
 
       <section class="studio" id="studio">
-        <h2>Paste desk</h2>
-        <label for="source">1 · Comment you copied</label>
-        <textarea id="source" rows="4" placeholder="Paste the comment here, in whatever language it was written.">Esta foto del atardecer está increíble, pero el pie de foto tiene la fecha mal.</textarea>
+        <h2 data-i18n="studio.title">Paste desk</h2>
+        <label for="source" data-i18n="studio.source">1 · Comment you copied</label>
+        <textarea id="source" rows="4" data-i18n-ph="studio.sourcePh" placeholder="Paste the comment here, in whatever language it was written.">Esta foto del atardecer está increíble, pero el pie de foto tiene la fecha mal.</textarea>
 
         <div class="lang-bar">
-          <span style="font-size:12px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft)">Languages</span>
+          <span data-i18n="studio.langs" style="font-size:12px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft)">Languages</span>
           <label class="switch">
             <input id="allLangs" type="checkbox" />
             <span class="track"></span>
-            All languages
+            <span data-i18n="studio.all">All languages</span>
           </label>
         </div>
         <div class="row">
           <div>
-            <label for="mine">I read</label>
+            <label for="mine" data-i18n="studio.mine">I read</label>
             <select id="mine"></select>
           </div>
           <div>
-            <label for="write">I write</label>
+            <label for="write" data-i18n="studio.write">I write</label>
             <select id="write"></select>
           </div>
           <div>
-            <label for="post">Post back in</label>
+            <label for="post" data-i18n="studio.post">Post back in</label>
             <select id="post"></select>
           </div>
         </div>
         <div class="actions">
-          <button class="btn ghost" id="defaultBtn" type="button">Set these as my default</button>
+          <button class="btn ghost" id="defaultBtn" type="button" data-i18n="studio.default">Set these as my default</button>
         </div>
 
         <div class="actions">
-          <button class="btn" id="readBtn" type="button">Translate so I can read it</button>
+          <button class="btn" id="readBtn" type="button" data-i18n="studio.read">Translate so I can read it</button>
         </div>
-        <div class="out empty" id="reading">Your reading version shows up here.</div>
+        <div class="out empty" id="reading" data-i18n="studio.reading">Your reading version shows up here.</div>
 
-        <label for="reply">2 · Your reply, in the language you think in</label>
-        <textarea id="reply" rows="3" placeholder="Write the reply here. Spelling does not have to be perfect.">You’re right — the date should be October 2, not October 20. I’ll fix the caption. Thanks for catching it.</textarea>
+        <label for="reply" data-i18n="studio.reply">2 · Your reply, in the language you think in</label>
+        <textarea id="reply" rows="3" data-i18n-ph="studio.replyPh" placeholder="Write the reply here. Spelling does not have to be perfect.">You’re right — the date should be October 2, not October 20. I’ll fix the caption. Thanks for catching it.</textarea>
         <div class="actions">
-          <button class="btn ready" id="prepBtn" type="button">Translate, check, and ready it</button>
-          <button class="btn ghost" id="copyBtn" type="button" disabled>Copy reply</button>
-          <button class="btn ghost" id="newBtn" type="button">New comment</button>
+          <button class="btn ready" id="prepBtn" type="button" data-i18n="studio.prep">Translate, check, and ready it</button>
+          <button class="btn ghost" id="copyBtn" type="button" disabled data-i18n="studio.copy">Copy reply</button>
+          <button class="btn ghost" id="newBtn" type="button" data-i18n="studio.new">New comment</button>
         </div>
-        <div class="out empty" id="ready">The paste-back reply shows up here.</div>
-        <p class="status" id="status">Looks for the Spelle backend first. If the Grok key is not set, it uses the browser preview.</p>
+        <div class="out empty" id="ready" data-i18n="studio.ready">The paste-back reply shows up here.</div>
+        <p class="status" id="status" data-i18n="studio.status">Looks for the Spelle backend first. If the Grok key is not set, it uses the browser preview.</p>
       </section>
     </header>
 
     <section class="steps" id="how">
-      <h2>Two apps. One paste each way.</h2>
+      <h2 data-i18n="how.title">Two apps. One paste each way.</h2>
       <div class="grid">
-        <article class="card"><div class="num">01</div><h3>Copy there</h3><p>Long-press the comment in X, Facebook, Instagram, TikTok, Reddit, YouTube, or wherever you already are.</p></article>
-        <article class="card"><div class="num">02</div><h3>Read here</h3><p>Paste it into Spelle. It comes back in the language you actually read, so you are not guessing the tone.</p></article>
-        <article class="card"><div class="num">03</div><h3>Answer yours</h3><p>Write the reply in Spanish, Vietnamese, Arabic, English — whichever one you think in. Short is fine.</p></article>
-        <article class="card"><div class="num">04</div><h3>Paste back</h3><p>Spelle translates it into the thread’s language, checks spelling, and leaves it ready to copy onto the original post.</p></article>
+        <article class="card"><div class="num">01</div><h3 data-i18n="how.c1t">Copy there</h3><p data-i18n="how.c1">Long-press the comment in X, Facebook, Instagram, TikTok, Reddit, YouTube, or wherever you already are.</p></article>
+        <article class="card"><div class="num">02</div><h3 data-i18n="how.c2t">Read here</h3><p data-i18n="how.c2">Paste it into Spelle. It comes back in the language you actually read, so you are not guessing the tone.</p></article>
+        <article class="card"><div class="num">03</div><h3 data-i18n="how.c3t">Answer yours</h3><p data-i18n="how.c3">Write the reply in Spanish, Vietnamese, Arabic, English — whichever one you think in. Short is fine.</p></article>
+        <article class="card"><div class="num">04</div><h3 data-i18n="how.c4t">Paste back</h3><p data-i18n="how.c4">Spelle translates it into the thread’s language, checks spelling, and leaves it ready to copy onto the original post.</p></article>
       </div>
     </section>
 
     <section class="fit" id="who">
-      <h2>Built for the reply you would have skipped.</h2>
+      <h2 data-i18n="who.title">Built for the reply you would have skipped.</h2>
       <div class="fit-grid">
         <article class="card">
-          <h3>You can follow the thread. You should not have to post in it.</h3>
-          <p>Spelle is the bridge for people who are not fluent in the language of the comment. No new social account. No API key. No browser extension fighting the app. You stay in the app you opened, and Spelle only holds the text long enough to translate and check it.</p>
+          <h3 data-i18n="who.h1">You can follow the thread. You should not have to post in it.</h3>
+          <p data-i18n="who.p1">Spelle is the bridge for people who are not fluent in the language of the comment. No new social account. No API key. No browser extension fighting the app. You stay in the app you opened, and Spelle only holds the text long enough to translate and check it.</p>
           <div class="langs" id="langChips"></div>
         </article>
         <article class="card">
-          <h3>What Spelle does not do</h3>
-          <p>It does not post for you. Social apps do not allow a third app to drop a reply into a thread. Copy and paste is the reliable path, and it is the whole product. It also does not ask you to bring an AI key. The key stays with Spelle.</p>
+          <h3 data-i18n="who.h2">What Spelle does not do</h3>
+          <p data-i18n="who.p2">It does not post for you. Social apps do not allow a third app to drop a reply into a thread. Copy and paste is the reliable path, and it is the whole product. It also does not ask you to bring an AI key. The key stays with Spelle.</p>
         </article>
       </div>
     </section>
 
     <section class="note">
-      <h2>Spell-checked means ready to send.</h2>
-      <p>A raw machine translation still looks like a raw machine translation. The last step is a spelling and polish pass: names stay names, the reply stays as long as you wrote it, and slang is only softened if you ask. Then one tap copies it.</p>
+      <h2 data-i18n="note.title">Spell-checked means ready to send.</h2>
+      <p data-i18n="note.p">A raw machine translation still looks like a raw machine translation. The last step is a spelling and polish pass: names stay names, the reply stays as long as you wrote it, and slang is only softened if you ask. Then one tap copies it.</p>
     </section>
 
     <footer>
-      <span>spelle.app · copy, read, reply, paste back.</span>
-      <span>Not the town-notice app for Spelle, Germany.</span>
+      <span data-i18n="foot.tag">spelle.app · copy, read, reply, paste back.</span>
+      <span data-i18n="foot.note">Not the town-notice app for Spelle, Germany.</span>
     </footer>
   </div>
 <script>
+const SITE_LANGS = [
+  ["en", "English"],
+  ["es", "Español"],
+  ["zh-CN", "中文"],
+  ["zh-TW", "繁體中文"],
+  ["ja", "日本語"],
+  ["ko", "한국어"],
+  ["vi", "Tiếng Việt"],
+  ["th", "ไทย"],
+  ["tl", "Tagalog"],
+  ["id", "Bahasa Indonesia"],
+  ["ms", "Bahasa Melayu"],
+  ["hi", "हिन्दी"],
+  ["ar", "العربية"],
+  ["fr", "Français"],
+  ["pt", "Português"],
+  ["ru", "Русский"],
+  ["de", "Deutsch"],
+  ["it", "Italiano"],
+  ["tr", "Türkçe"],
+  ["pl", "Polski"]
+];
+const SITE_KEY = "spelle-site-lang";
+const siteLang = document.getElementById("siteLang");
+const originals = {};
+let sitePack = {};
+function collectOriginals() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    originals[el.dataset.i18n] = el.innerHTML.trim();
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+    originals[el.dataset.i18nPh] = el.getAttribute("placeholder") || "";
+  });
+  Object.assign(originals, {
+    "status.default": "Default saved on this phone. Next visit opens with these languages.",
+    "status.clear": "Cleared. Paste the next comment.",
+    "status.read": "Translating the comment…",
+    "status.readDone": "Reading version ready.",
+    "status.prep": "Translating your reply and checking it…",
+    "status.ready": "Checked. Tap Copy reply.",
+    "status.need": "Ready the reply first.",
+    "status.copied": "Copied. Switch back and paste.",
+    "status.select": "Long-press the green reply and copy it.",
+    "status.timeout": "That took too long. Try a shorter reply.",
+    "status.empty": "Nothing to translate."
+  });
+}
+function t(key) {
+  return sitePack[key] || originals[key] || key;
+}
+function applyPack(pack) {
+  sitePack = pack || {};
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const value = pack[el.dataset.i18n];
+    if (!value) return;
+    if (value.includes("<")) el.innerHTML = value;
+    else el.textContent = value;
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+    const value = pack[el.dataset.i18nPh];
+    if (value) el.setAttribute("placeholder", value);
+  });
+}
+function restoreEnglish() {
+  applyPack(originals);
+  sitePack = {};
+}
+async function setSiteLanguage(code) {
+  localStorage.setItem(SITE_KEY, code);
+  document.documentElement.lang = code;
+  if (code === "en") { restoreEnglish(); return; }
+  const cacheKey = "spelle-i18n-" + code;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) { applyPack(JSON.parse(cached)); return; }
+  siteLang.disabled = true;
+  try {
+    const res = await fetch("/api/spelle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: JSON.stringify(originals), from: "en", to: code, mode: "site" })
+    });
+    const data = await res.json();
+    const pack = data.strings || (data.text ? JSON.parse(data.text) : null);
+    if (!pack) throw new Error("no pack");
+    localStorage.setItem(cacheKey, JSON.stringify(pack));
+    applyPack(pack);
+  } catch (err) {
+    status.textContent = "Could not switch the page language. Try again.";
+  } finally {
+    siteLang.disabled = false;
+  }
+}
+for (const [code, name] of SITE_LANGS) {
+  const o = document.createElement("option");
+  o.value = code; o.textContent = name; siteLang.appendChild(o);
+}
+collectOriginals();
+siteLang.value = localStorage.getItem(SITE_KEY) || "en";
+if (siteLang.value !== "en") setSiteLanguage(siteLang.value);
+siteLang.addEventListener("change", () => setSiteLanguage(siteLang.value));
 const COMMON = [
   ["es", "Spanish"],
   ["zh-CN", "Chinese (Simplified)"],
@@ -360,11 +469,11 @@ document.getElementById("defaultBtn").addEventListener("click", () => {
   localStorage.setItem(DEFAULT_KEY, JSON.stringify({
     mine: mine.value, write: write.value, post: post.value
   }));
-  status.textContent = "Default saved on this phone. Next visit opens with these languages.";
+  status.textContent = t("status.default");
 });
 
 async function translate(text, from, to, mode) {
-  if (!text.trim()) throw new Error("Nothing to translate.");
+  if (!text.trim()) throw new Error(t("status.empty"));
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 12000);
   try {
@@ -380,7 +489,7 @@ async function translate(text, from, to, mode) {
       throw new Error(data.error || "Spelle could not finish that.");
     }
   } catch (err) {
-    if (err.name === "AbortError") throw new Error("That took too long. Try a shorter reply.");
+    if (err.name === "AbortError") throw new Error(t("status.timeout"));
     if (!(err instanceof TypeError)) throw err;
   } finally {
     clearTimeout(timer);
@@ -407,18 +516,18 @@ function clearWork() {
   ready.textContent = "The paste-back reply shows up here.";
   ready.classList.add("empty");
   document.getElementById("copyBtn").disabled = true;
-  status.textContent = "Cleared. Paste the next comment.";
+  status.textContent = t("status.clear");
   document.getElementById("source").focus();
 }
 document.getElementById("newBtn").addEventListener("click", clearWork);
 document.getElementById("readBtn").addEventListener("click", async () => {
   const btn = document.getElementById("readBtn");
-  btn.disabled = true; btn.classList.add("busy"); status.textContent = "Translating the comment…";
+  btn.disabled = true; btn.classList.add("busy"); status.textContent = t("status.read");
   try {
     const text = await translate(document.getElementById("source").value, post.value, mine.value, "read");
     const box = document.getElementById("reading");
     box.textContent = text; box.classList.remove("empty");
-    status.textContent = "Reading version ready.";
+    status.textContent = t("status.readDone");
   } catch (err) { status.textContent = err.message; }
   finally { btn.disabled = false; btn.classList.remove("busy"); }
 });
@@ -426,13 +535,13 @@ document.getElementById("prepBtn").addEventListener("click", async () => {
   const btn = document.getElementById("prepBtn");
   const label = btn.textContent;
   btn.disabled = true; btn.classList.add("busy");
-  status.textContent = "Translating your reply and checking it…";
+  status.textContent = t("status.prep");
   try {
     const text = polish(await translate(document.getElementById("reply").value, write.value, post.value, "ready"));
     const box = document.getElementById("ready");
     box.textContent = text; box.classList.remove("empty");
     document.getElementById("copyBtn").disabled = false;
-    status.textContent = "Checked. Tap Copy reply.";
+    status.textContent = t("status.ready");
   } catch (err) { status.textContent = err.message; }
   finally { btn.disabled = false; btn.classList.remove("busy"); btn.textContent = label; }
 });
@@ -440,13 +549,13 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   const box = document.getElementById("ready");
   const text = box.textContent.trim();
   if (!text || box.classList.contains("empty")) {
-    status.textContent = "Ready the reply first.";
+    status.textContent = t("status.need");
     return;
   }
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
-      status.textContent = "Copied. Switch back and paste.";
+      status.textContent = t("status.copied");
       return;
     }
     throw new Error("no clipboard");
@@ -456,7 +565,7 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
-    status.textContent = "Long-press the green reply and copy it.";
+    status.textContent = t("status.select");
   }
 });
 </script>

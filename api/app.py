@@ -133,6 +133,30 @@ async def translate(request: Request):
     src = str(body.get("from") or "auto")[:16]
     dst = str(body.get("to") or "en")[:16]
     mode = str(body.get("mode") or "read")
+    if mode == "site":
+        try:
+            strings = json.loads(text)
+        except Exception:
+            return JSONResponse({"error": "Need a JSON object of strings."}, status_code=400)
+        if not isinstance(strings, dict) or not strings:
+            return JSONResponse({"error": "Need a JSON object of strings."}, status_code=400)
+        system = (
+            "Translate the values of a JSON object for a website UI. "
+            "Keep every key exactly. Keep the brand name Spelle unchanged. "
+            "Keep any HTML tags such as <em> exactly. "
+            "Keep numbers and punctuation. Return only valid JSON, no markdown."
+        )
+        user = f"Translate every value from {src} to {dst}.\n\n{json.dumps(strings, ensure_ascii=False)}"
+        try:
+            out = grok(system, user)
+        except RuntimeError as exc:
+            return JSONResponse({"error": str(exc)}, status_code=503)
+        cleaned = out.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        try:
+            translated = json.loads(cleaned)
+        except Exception:
+            return JSONResponse({"error": "Translation did not come back as JSON.", "raw": out[:240]}, status_code=502)
+        return {"text": json.dumps(translated, ensure_ascii=False), "strings": translated}
     if not text.strip():
         return JSONResponse({"error": "Nothing to translate."}, status_code=400)
     system = (
