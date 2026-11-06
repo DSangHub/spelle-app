@@ -33,6 +33,18 @@ def home():
         return FileResponse(index)
     return {"ok": True, "app": "spelle"}
 
+
+@app.get("/logo.jpg")
+@app.get("/assets/logo.jpg")
+def logo():
+    return FileResponse(PUBLIC / "logo.jpg")
+
+
+@app.get("/mark.jpg")
+@app.get("/assets/mark.jpg")
+def mark():
+    return FileResponse(PUBLIC / "mark.jpg")
+
 MODEL = os.environ.get("SPELLE_MODEL", "grok-4-fast-non-reasoning")
 API_URL = os.environ.get("XAI_API_URL", "https://api.x.ai/v1/chat/completions")
 MAX_CHARS = int(os.environ.get("SPELLE_MAX_CHARS", "2000"))
