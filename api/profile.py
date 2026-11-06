@@ -19,7 +19,7 @@ def db():
     if not url:
         raise RuntimeError("DATABASE_URL is not set.")
     import psycopg
-    return psycopg.connect(url)
+    return psycopg.connect(url, prepare_threshold=None)
 
 
 def ensure(conn) -> None:

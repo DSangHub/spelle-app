@@ -20,7 +20,7 @@ def mark_paid(email: str) -> None:
     url = os.environ.get("DATABASE_URL", "").strip()
     if not url:
         return
-    with psycopg.connect(url) as conn:
+    with psycopg.connect(url, prepare_threshold=None) as conn:
         conn.execute(
             "update profiles set plan = 'paid', paid_until = now() + interval '30 days' where email = %s",
             (email,),
