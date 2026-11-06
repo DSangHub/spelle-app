@@ -186,6 +186,9 @@
             <select id="post"></select>
           </div>
         </div>
+        <div class="actions">
+          <button class="btn ghost" id="defaultBtn" type="button">Set these as my default</button>
+        </div>
 
         <div class="actions">
           <button class="btn" id="readBtn" type="button">Translate so I can read it</button>
@@ -240,10 +243,20 @@
   </div>
 <script>
 const COMMON = [
-  ["en", "English"], ["es", "Spanish"], ["vi", "Vietnamese"], ["zh-CN", "Chinese"],
-  ["ar", "Arabic"], ["hi", "Hindi"], ["tl", "Tagalog"], ["ko", "Korean"],
-  ["pt", "Portuguese"], ["fr", "French"], ["ru", "Russian"], ["ja", "Japanese"],
-  ["de", "German"], ["uk", "Ukrainian"], ["fa", "Persian"]
+  ["es", "Spanish"],
+  ["zh-CN", "Chinese (Simplified)"],
+  ["zh-TW", "Chinese (Traditional)"],
+  ["ja", "Japanese"],
+  ["ko", "Korean"],
+  ["vi", "Vietnamese"],
+  ["th", "Thai"],
+  ["tl", "Tagalog"],
+  ["id", "Indonesian"],
+  ["ms", "Malay"],
+  ["my", "Burmese"],
+  ["km", "Khmer"],
+  ["lo", "Lao"],
+  ["en", "English"]
 ];
 const ALL = [
   ["af", "Afrikaans"], ["sq", "Albanian"], ["am", "Amharic"], ["ar", "Arabic"],
@@ -280,8 +293,18 @@ const post = document.getElementById("post");
 const chips = document.getElementById("langChips");
 const allToggle = document.getElementById("allLangs");
 
+const DEFAULT_KEY = "spelle-default-langs";
+function savedDefault() {
+  try { return JSON.parse(localStorage.getItem(DEFAULT_KEY) || "null"); }
+  catch { return null; }
+}
 function fill(list) {
-  const keep = { mine: mine.value || "en", write: write.value || "en", post: post.value || "es" };
+  const saved = savedDefault() || {};
+  const keep = {
+    mine: mine.value || saved.mine || "en",
+    write: write.value || saved.write || "en",
+    post: post.value || saved.post || "es"
+  };
   for (const sel of [mine, write, post]) sel.replaceChildren();
   for (const [code, name] of list) {
     for (const sel of [mine, write, post]) {
@@ -293,7 +316,7 @@ function fill(list) {
   write.value = list.some(([c]) => c === keep.write) ? keep.write : "en";
   post.value = list.some(([c]) => c === keep.post) ? keep.post : "es";
   chips.replaceChildren();
-  const shown = allToggle.checked ? list : list.slice(0, 12);
+  const shown = allToggle.checked ? list : list;
   for (const [, name] of shown) {
     const s = document.createElement("span");
     s.textContent = name;
@@ -307,6 +330,12 @@ function fill(list) {
 }
 allToggle.addEventListener("change", () => fill(allToggle.checked ? ALL : COMMON));
 fill(COMMON);
+document.getElementById("defaultBtn").addEventListener("click", () => {
+  localStorage.setItem(DEFAULT_KEY, JSON.stringify({
+    mine: mine.value, write: write.value, post: post.value
+  }));
+  status.textContent = "Default saved on this phone. Next visit opens with these languages.";
+});
 
 async function translate(text, from, to, mode) {
   if (!text.trim()) throw new Error("Nothing to translate.");
