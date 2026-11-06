@@ -201,6 +201,7 @@
         <div class="actions">
           <button class="btn ready" id="prepBtn" type="button">Translate, check, and ready it</button>
           <button class="btn ghost" id="copyBtn" type="button" disabled>Copy reply</button>
+          <button class="btn ghost" id="newBtn" type="button">New comment</button>
         </div>
         <div class="out empty" id="ready">The paste-back reply shows up here.</div>
         <p class="status" id="status">Looks for the Spelle backend first. If the Grok key is not set, it uses the browser preview.</p>
@@ -372,7 +373,20 @@ async function translate(text, from, to, mode) {
 function polish(text) {
   return text.replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1").trim();
 }
-const status = document.getElementById("status");
+function clearWork() {
+  document.getElementById("source").value = "";
+  document.getElementById("reply").value = "";
+  const reading = document.getElementById("reading");
+  const ready = document.getElementById("ready");
+  reading.textContent = "Your reading version shows up here.";
+  reading.classList.add("empty");
+  ready.textContent = "The paste-back reply shows up here.";
+  ready.classList.add("empty");
+  document.getElementById("copyBtn").disabled = true;
+  status.textContent = "Cleared. Paste the next comment.";
+  document.getElementById("source").focus();
+}
+document.getElementById("newBtn").addEventListener("click", clearWork);
 document.getElementById("readBtn").addEventListener("click", async () => {
   const btn = document.getElementById("readBtn");
   btn.disabled = true; btn.classList.add("busy"); status.textContent = "Translating the comment…";
