@@ -1,19 +1,19 @@
-"""Spelle API: translate, profiles, Razorpay.
+"""Spelle API: translate, profiles, Stripe Checkout.
 
 Entrypoint: api.app:app
 """
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 import json
 import os
 import re
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
-
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -38,11 +38,11 @@ API_URL = os.environ.get("XAI_API_URL", "https://api.x.ai/v1/chat/completions")
 MAX_CHARS = int(os.environ.get("SPELLE_MAX_CHARS", "2000"))
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
-KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "").strip()
-KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "").strip()
-WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "").strip()
-CURRENCY = os.environ.get("RAZORPAY_CURRENCY", "USD")
-AMOUNT = int(os.environ.get("RAZORPAY_AMOUNT", "499"))
+STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
+SITE = os.environ.get("SPELLE_SITE", "https://spelle.app").rstrip("/")
+CURRENCY = os.environ.get("STRIPE_CURRENCY", "usd")
+AMOUNT = int(os.environ.get("STRIPE_AMOUNT", "499"))
 
 
 def db():
@@ -62,10 +62,13 @@ def ensure(conn) -> None:
           language text,
           plan text default 'free',
           paid_until timestamptz,
-          razorpay_customer text,
+          stripe_customer text,
           created_at timestamptz default now()
         )
         """
+    )
+    conn.execute(
+        "alter table profiles add column if not exists stripe_customer text"
     )
     conn.commit()
 
@@ -100,7 +103,12 @@ def grok(system: str, user: str) -> str:
 @app.get("/api/spelle")
 @app.get("/api/health")
 def health():
-    return {"ok": True, "grok": bool(os.environ.get("XAI_API_KEY")), "model": MODEL}
+    return {
+        "ok": True,
+        "grok": bool(os.environ.get("XAI_API_KEY")),
+        "stripe": bool(STRIPE_SECRET),
+        "model": MODEL,
+    }
 
 
 @app.post("/api/spelle")
@@ -193,20 +201,17 @@ async def save_profile(request: Request):
     }
 
 
-def create_order(email: str) -> dict:
-    if not KEY_ID or not KEY_SECRET:
-        raise RuntimeError("Razorpay keys are not set.")
-    payload = {
-        "amount": AMOUNT,
-        "currency": CURRENCY,
-        "receipt": email[:40],
-        "notes": {"email": email, "app": "spelle"},
-    }
-    token = base64.b64encode(f"{KEY_ID}:{KEY_SECRET}".encode()).decode()
+def stripe_form(fields: dict) -> dict:
+    if not STRIPE_SECRET:
+        raise RuntimeError("Stripe key is not set.")
+    body = urllib.parse.urlencode(fields).encode()
     req = urllib.request.Request(
-        "https://api.razorpay.com/v1/orders",
-        data=json.dumps(payload).encode(),
-        headers={"Authorization": f"Basic {token}", "Content-Type": "application/json"},
+        "https://api.stripe.com/v1/checkout/sessions",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {STRIPE_SECRET}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
         method="POST",
     )
     try:
@@ -214,17 +219,41 @@ def create_order(email: str) -> dict:
             return json.loads(res.read().decode())
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode()[:240]
-        raise RuntimeError(f"Razorpay {exc.code}. {detail}") from exc
+        raise RuntimeError(f"Stripe {exc.code}. {detail}") from exc
 
 
-def mark_paid(email: str) -> None:
+def mark_paid(email: str, customer: str = "") -> None:
     with db() as conn:
         ensure(conn)
         conn.execute(
-            "update profiles set plan = 'paid', paid_until = now() + interval '30 days' where email = %s",
-            (email,),
+            """
+            update profiles
+               set plan = 'paid',
+                   paid_until = now() + interval '30 days',
+                   stripe_customer = coalesce(nullif(%s, ''), stripe_customer)
+             where email = %s
+            """,
+            (customer or "", email),
         )
         conn.commit()
+
+
+def verify_stripe(raw: bytes, header: str) -> dict:
+    parts = {}
+    for item in (header or "").split(","):
+        key, _, value = item.partition("=")
+        parts.setdefault(key.strip(), []).append(value.strip())
+    timestamp = (parts.get("t") or [""])[0]
+    signatures = parts.get("v1") or []
+    if not timestamp or not signatures or not STRIPE_WEBHOOK:
+        raise RuntimeError("Bad signature.")
+    if abs(time.time() - int(timestamp)) > 300:
+        raise RuntimeError("Webhook is too old.")
+    signed = f"{timestamp}.".encode() + raw
+    expected = hmac.new(STRIPE_WEBHOOK.encode(), signed, hashlib.sha256).hexdigest()
+    if not any(hmac.compare_digest(expected, sig) for sig in signatures):
+        raise RuntimeError("Bad signature.")
+    return json.loads(raw.decode() or "{}")
 
 
 @app.post("/api/pay")
@@ -234,54 +263,43 @@ async def pay(request: Request):
     except Exception:
         return JSONResponse({"error": "Could not read that."}, status_code=400)
     email = str(body.get("email") or "").strip().lower()
-    if not email:
-        return JSONResponse({"error": "Need an email."}, status_code=400)
+    if not EMAIL_RE.match(email):
+        return JSONResponse({"error": "Need a valid email."}, status_code=400)
     try:
-        order = create_order(email)
+        session = stripe_form({
+            "mode": "payment",
+            "customer_email": email,
+            "success_url": f"{SITE}/?paid=1",
+            "cancel_url": f"{SITE}/?paid=0",
+            "metadata[email]": email,
+            "line_items[0][quantity]": "1",
+            "line_items[0][price_data][currency]": CURRENCY,
+            "line_items[0][price_data][unit_amount]": str(AMOUNT),
+            "line_items[0][price_data][product_data][name]": "Spelle",
+        })
     except RuntimeError as exc:
         return JSONResponse({"error": str(exc)}, status_code=503)
     return {
-        "order_id": order.get("id"),
-        "amount": order.get("amount"),
-        "currency": order.get("currency"),
-        "key_id": KEY_ID,
+        "url": session.get("url"),
+        "session_id": session.get("id"),
+        "amount": AMOUNT,
+        "currency": CURRENCY,
     }
-
-
-@app.post("/api/pay/verify")
-async def verify(request: Request):
-    try:
-        body = await request.json()
-    except Exception:
-        return JSONResponse({"error": "Could not read that."}, status_code=400)
-    order_id = str(body.get("razorpay_order_id") or "")
-    payment_id = str(body.get("razorpay_payment_id") or "")
-    signature = str(body.get("razorpay_signature") or "")
-    email = str(body.get("email") or "").strip().lower()
-    expected = hmac.new(KEY_SECRET.encode(), f"{order_id}|{payment_id}".encode(), hashlib.sha256).hexdigest()
-    if not KEY_SECRET or not hmac.compare_digest(expected, signature):
-        return JSONResponse({"error": "Payment signature did not match."}, status_code=400)
-    try:
-        mark_paid(email)
-    except RuntimeError as exc:
-        return JSONResponse({"error": str(exc)}, status_code=503)
-    return {"ok": True, "plan": "paid"}
 
 
 @app.post("/api/webhook")
 async def webhook(request: Request):
     raw = await request.body()
-    sig = request.headers.get("x-razorpay-signature", "")
-    expected = hmac.new(WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
-    if not WEBHOOK_SECRET or not hmac.compare_digest(expected, sig):
+    try:
+        event = verify_stripe(raw, request.headers.get("stripe-signature", ""))
+    except (RuntimeError, ValueError):
         return JSONResponse({"error": "Bad signature."}, status_code=400)
-    event = json.loads(raw.decode() or "{}")
-    if event.get("event") == "order.paid":
-        notes = event.get("payload", {}).get("order", {}).get("entity", {}).get("notes") or {}
-        email = notes.get("email")
+    if event.get("type") == "checkout.session.completed":
+        session = event.get("data", {}).get("object") or {}
+        email = (session.get("metadata") or {}).get("email") or session.get("customer_email") or ""
         if email:
             try:
-                mark_paid(email)
+                mark_paid(email.lower(), session.get("customer") or "")
             except RuntimeError:
                 pass
     return {"ok": True}
