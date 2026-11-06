@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Spelle — Read any comment. Reply in any language.</title>
 <meta name="description" content="Copy a social comment, paste it into Spelle, read it in your language, write a reply in yours, and copy a spell-checked translation back to the original post. No API keys." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -131,7 +131,29 @@
   @media (max-width: 860px) {
     .hero, .grid, .fit-grid, .row { grid-template-columns: 1fr; }
     .nav-links a { display: none; }
-    h1 { font-size: 42px; }
+    h1 { font-size: 40px; }
+    .steps h2, .fit h2, .note h2 { font-size: 28px; }
+  }
+  @media (max-width: 640px) {
+    .wrap { width: min(1120px, calc(100% - 20px)); }
+    nav { padding: 14px 0 4px; }
+    .brand b { font-size: 20px; }
+    .hero { gap: 16px; padding: 16px 0 8px; }
+    h1 { font-size: 34px; line-height: 1; margin: 10px 0; }
+    .lede { font-size: 16px; }
+    .studio { padding: 12px; border-radius: 16px; }
+    .studio h2 { font-size: 20px; }
+    .row { gap: 6px; }
+    label { margin: 12px 2px 6px; }
+    textarea, select { font-size: 16px; padding: 12px; border-radius: 12px; }
+    .actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .btn { width: 100%; min-height: 46px; font-size: 15px; text-align: center; }
+    .out { font-size: 16px; }
+    .lang-bar { flex-wrap: wrap; align-items: flex-start; }
+    .grid, .fit-grid { gap: 10px; }
+    .card { min-height: 0; }
+    .steps, .fit, .note { padding: 20px 0; }
+    footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
   }
 </style>
 </head>
