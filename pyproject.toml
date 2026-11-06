@@ -3,7 +3,7 @@ name = "spelle"
 version = "0.1.0"
 description = "Paste a comment, translate it, spell-check the reply."
 requires-python = ">=3.12"
-dependencies = ["psycopg[binary]>=3.2"]
+dependencies = ["psycopg[binary]>=3.2", "fastapi"]
 
 [tool.vercel]
-entrypoint = "api.spelle:handler"
+entrypoint = "api.app:app"

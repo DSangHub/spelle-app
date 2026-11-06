@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/spelle.py": {
+    "api/app.py": {
       "maxDuration": 10
     }
   }
