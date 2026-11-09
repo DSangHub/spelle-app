@@ -545,28 +545,60 @@ document.getElementById("prepBtn").addEventListener("click", async () => {
   } catch (err) { status.textContent = err.message; }
   finally { btn.disabled = false; btn.classList.remove("busy"); btn.textContent = label; }
 });
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) { /* fall through */ }
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.top = "0";
+  ta.style.left = "0";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
 document.getElementById("copyBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("copyBtn");
   const box = document.getElementById("ready");
   const text = box.textContent.trim();
   if (!text || box.classList.contains("empty")) {
     status.textContent = t("status.need");
     return;
   }
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(text);
-      status.textContent = t("status.copied");
-      return;
-    }
-    throw new Error("no clipboard");
-  } catch (err) {
-    const range = document.createRange();
-    range.selectNodeContents(box);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    status.textContent = t("status.select");
+  const ok = await copyText(text);
+  if (ok) {
+    const label = btn.textContent;
+    btn.textContent = "Copied";
+    status.textContent = t("status.copied");
+    setTimeout(() => { btn.textContent = label; }, 1600);
+    return;
   }
+  const range = document.createRange();
+  range.selectNodeContents(box);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  status.textContent = t("status.select");
+});
+document.getElementById("ready").addEventListener("click", () => {
+  const box = document.getElementById("ready");
+  if (box.classList.contains("empty")) return;
+  const range = document.createRange();
+  range.selectNodeContents(box);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
 });
 </script>
 </body>
