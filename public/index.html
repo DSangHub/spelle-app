@@ -135,7 +135,16 @@
   .langs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .langs span { background: var(--chip); border-radius: 999px; padding: 5px 9px; font-size: 12px; }
   footer { padding: 10px 0 32px; color: var(--ink-soft); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .ad-slot {
+  .copy-square {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; aspect-ratio: 1 / 1; max-width: 160px;
+    margin: 14px auto 0; border: none; border-radius: 18px;
+    background: var(--ready); color: #fff; font: inherit; font-weight: 700;
+    font-size: 15px; letter-spacing: 0.01em; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(29,107,69,0.18);
+  }
+  .copy-square:disabled { background: #c9c2b6; box-shadow: none; cursor: not-allowed; }
+  .copy-square.done { background: var(--ink); }
     margin: 20px auto 12px; max-width: 728px; min-height: 90px;
     border: 1px dashed var(--line); border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
@@ -245,6 +254,7 @@
           <button class="btn ghost" id="newBtn" type="button" data-i18n="studio.new">New comment</button>
         </div>
         <div class="out empty" id="ready" data-i18n="studio.ready">The paste-back reply shows up here.</div>
+        <button class="copy-square" id="copySquare" type="button" disabled data-i18n="studio.copySquare">Copy to paste</button>
         <p class="status" id="status" data-i18n="studio.status">Looks for the Spelle backend first. If the Grok key is not set, it uses the browser preview.</p>
       </section>
     </header>
@@ -327,7 +337,8 @@ function collectOriginals() {
     "status.read": "Translating the comment…",
     "status.readDone": "Reading version ready.",
     "status.prep": "Translating your reply and checking it…",
-    "status.ready": "Checked. Tap Copy reply.",
+    "status.ready": "Checked. Tap the green square to copy.",
+    "studio.copySquare": "Copy to paste",
     "status.need": "Ready the reply first.",
     "status.copied": "Copied. Switch back and paste.",
     "status.select": "Long-press the green reply and copy it.",
@@ -560,6 +571,8 @@ function clearWork() {
   ready.textContent = "The paste-back reply shows up here.";
   ready.classList.add("empty");
   document.getElementById("copyBtn").disabled = true;
+  document.getElementById("copySquare").disabled = true;
+  document.getElementById("copySquare").classList.remove("done");
   status.textContent = t("status.clear");
   document.getElementById("source").focus();
 }
@@ -585,6 +598,7 @@ document.getElementById("prepBtn").addEventListener("click", async () => {
     const box = document.getElementById("ready");
     box.textContent = text; box.classList.remove("empty");
     document.getElementById("copyBtn").disabled = false;
+    document.getElementById("copySquare").disabled = false;
     status.textContent = t("status.ready");
   } catch (err) { status.textContent = err.message; }
   finally { btn.disabled = false; btn.classList.remove("busy"); btn.textContent = label; }
@@ -635,7 +649,24 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   sel.addRange(range);
   status.textContent = t("status.select");
 });
-document.getElementById("ready").addEventListener("click", () => {
+document.getElementById("copySquare").addEventListener("click", async () => {
+  const btn = document.getElementById("copySquare");
+  const box = document.getElementById("ready");
+  const text = box.textContent.trim();
+  if (!text || box.classList.contains("empty")) {
+    status.textContent = t("status.need");
+    return;
+  }
+  const ok = await copyText(text);
+  if (ok) {
+    btn.textContent = "Copied";
+    btn.classList.add("done");
+    status.textContent = t("status.copied");
+    setTimeout(() => { btn.textContent = t("studio.copySquare") || "Copy to paste"; btn.classList.remove("done"); }, 1600);
+    return;
+  }
+  status.textContent = t("status.select");
+});
   const box = document.getElementById("ready");
   if (box.classList.contains("empty")) return;
   const range = document.createRange();
