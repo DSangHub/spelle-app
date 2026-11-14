@@ -49,9 +49,13 @@ def mark():
 @app.get("/privacy")
 @app.get("/privacy.html")
 def privacy():
-    page = PUBLIC / "privacy.html"
-    if page.exists():
-        return FileResponse(page)
+    candidates = [
+        Path(__file__).resolve().parent / "privacy.html",
+        PUBLIC / "privacy.html",
+    ]
+    for page in candidates:
+        if page.exists():
+            return FileResponse(page)
     return JSONResponse({"error": "Privacy page missing."}, status_code=404)
 
 MODEL = os.environ.get("SPELLE_MODEL", "grok-4-fast-non-reasoning")
