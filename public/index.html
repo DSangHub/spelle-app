@@ -135,6 +135,14 @@
   .langs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .langs span { background: var(--chip); border-radius: 999px; padding: 5px 9px; font-size: 12px; }
   footer { padding: 10px 0 32px; color: var(--ink-soft); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .ad-slot {
+    margin: 20px auto 12px; max-width: 728px; min-height: 90px;
+    border: 1px dashed var(--line); border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font-size: 12px; letter-spacing: 0.06em;
+    text-transform: uppercase; background: #fffdf8;
+  }
+  footer a { color: inherit; }
   @media (max-width: 860px) {
     .hero, .grid, .fit-grid, .row { grid-template-columns: 1fr; }
     .nav-links a { display: none; }
@@ -271,9 +279,11 @@
       <p data-i18n="note.p">A raw machine translation still looks like a raw machine translation. The last step is a spelling and polish pass: names stay names, the reply stays as long as you wrote it, and slang is only softened if you ask. Then one tap copies it.</p>
     </section>
 
+    <div class="ad-slot" id="spelle-ad" data-ad-slot="footer">Ad space</div>
+
     <footer>
       <span data-i18n="foot.tag">spelle.app · copy, read, reply, paste back.</span>
-      <span data-i18n="foot.note">Not the town-notice app for Spelle, Germany.</span>
+      <span><a href="/privacy">Privacy</a> · <span data-i18n="foot.note">Not the town-notice app for Spelle, Germany.</span></span>
     </footer>
   </div>
 <script>

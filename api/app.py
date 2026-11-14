@@ -45,6 +45,15 @@ def logo():
 def mark():
     return FileResponse(PUBLIC / "mark.jpg")
 
+
+@app.get("/privacy")
+@app.get("/privacy.html")
+def privacy():
+    page = PUBLIC / "privacy.html"
+    if page.exists():
+        return FileResponse(page)
+    return JSONResponse({"error": "Privacy page missing."}, status_code=404)
+
 MODEL = os.environ.get("SPELLE_MODEL", "grok-4-fast-non-reasoning")
 API_URL = os.environ.get("XAI_API_URL", "https://api.x.ai/v1/chat/completions")
 MAX_CHARS = int(os.environ.get("SPELLE_MAX_CHARS", "2000"))
