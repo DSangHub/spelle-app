@@ -385,8 +385,40 @@ for (const [code, name] of SITE_LANGS) {
   o.value = code; o.textContent = name; siteLang.appendChild(o);
 }
 collectOriginals();
-siteLang.value = localStorage.getItem(SITE_KEY) || "en";
-if (siteLang.value !== "en") setSiteLanguage(siteLang.value);
+const GEO_LANG = {
+  US:"en", GB:"en", AU:"en", CA:"en", NZ:"en", IE:"en", ZA:"en", NG:"en", KE:"en", GH:"en",
+  ES:"es", MX:"es", AR:"es", CO:"es", PE:"es", CL:"es", VE:"es", EC:"es", GT:"es", CU:"es", BO:"es", DO:"es", HN:"es", PY:"es", SV:"es", NI:"es", CR:"es", PA:"es", UY:"es",
+  CN:"zh-CN", SG:"zh-CN", TW:"zh-TW", HK:"zh-TW", JP:"ja", KR:"ko", VN:"vi", TH:"th", PH:"tl",
+  ID:"id", MY:"ms", IN:"hi", PK:"ur",
+  SA:"ar", AE:"ar", EG:"ar", MA:"ar", DZ:"ar", IQ:"ar", JO:"ar", KW:"ar", QA:"ar", LB:"ar", SY:"ar", TN:"ar", LY:"ar", SD:"ar", YE:"ar", OM:"ar", BH:"ar",
+  FR:"fr", BE:"fr", CH:"fr", SN:"fr", CI:"fr", CM:"fr", ML:"fr", NE:"fr", BF:"fr", MG:"fr", CD:"fr",
+  PT:"pt", BR:"pt", AO:"pt", MZ:"pt", RU:"ru", DE:"de", AT:"de", IT:"it", TR:"tr", PL:"pl"
+};
+async function detectNativeLanguage() {
+  try {
+    const res = await fetch("https://ipapi.co/json/", { headers: { Accept: "application/json" } });
+    const data = await res.json();
+    const code = GEO_LANG[(data.country_code || "").toUpperCase()];
+    if (code) return code;
+  } catch (err) { /* fall through */ }
+  const nav = (navigator.language || "en").toLowerCase();
+  const match = SITE_LANGS.find(([c]) => nav === c.toLowerCase() || nav.startsWith(c.split("-")[0]));
+  return match ? match[0] : "en";
+}
+const savedSite = localStorage.getItem(SITE_KEY);
+if (savedSite) {
+  siteLang.value = savedSite;
+  if (savedSite !== "en") setSiteLanguage(savedSite);
+} else {
+  detectNativeLanguage().then((code) => {
+    siteLang.value = code;
+    setSiteLanguage(code);
+    const mineSel = document.getElementById("mine");
+    const writeSel = document.getElementById("write");
+    if (mineSel && [...mineSel.options].some((o) => o.value === code)) mineSel.value = code;
+    if (writeSel && [...writeSel.options].some((o) => o.value === code)) writeSel.value = code;
+  });
+}
 siteLang.addEventListener("change", () => setSiteLanguage(siteLang.value));
 const COMMON = [
   ["es", "Spanish"],
