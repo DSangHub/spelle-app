@@ -18,12 +18,9 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 PUBLIC = Path(__file__).resolve().parent.parent / "public"
-if PUBLIC.exists():
-    app.mount("/assets", StaticFiles(directory=PUBLIC), name="assets")
 
 
 @app.get("/")
