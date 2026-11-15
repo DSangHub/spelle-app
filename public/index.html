@@ -213,7 +213,7 @@
       <section class="studio" id="studio">
         <h2 data-i18n="studio.title">Paste desk</h2>
         <label for="source" data-i18n="studio.source">1 · Comment you copied</label>
-        <textarea id="source" rows="4" data-i18n-ph="studio.sourcePh" placeholder="Paste the comment here, in whatever language it was written.">Esta foto del atardecer está increíble, pero el pie de foto tiene la fecha mal.</textarea>
+        <textarea id="source" rows="4" data-i18n-ph="studio.sourcePh" placeholder="Paste the comment here, in whatever language it was written."></textarea>
 
         <div class="lang-bar">
           <span data-i18n="studio.langs" style="font-size:12px;font-weight:650;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-soft)">Languages</span>
@@ -247,7 +247,7 @@
         <div class="out empty" id="reading" data-i18n="studio.reading">Your reading version shows up here.</div>
 
         <label for="reply" data-i18n="studio.reply">2 · Your reply, in the language you think in</label>
-        <textarea id="reply" rows="3" data-i18n-ph="studio.replyPh" placeholder="Write the reply here. Spelling does not have to be perfect.">You’re right — the date should be October 2, not October 20. I’ll fix the caption. Thanks for catching it.</textarea>
+        <textarea id="reply" rows="3" data-i18n-ph="studio.replyPh" placeholder="Write the reply here. Spelling does not have to be perfect."></textarea>
         <div class="actions">
           <button class="btn ready" id="prepBtn" type="button" data-i18n="studio.prep">Translate, check, and ready it</button>
           <button class="btn ghost" id="copyBtn" type="button" disabled data-i18n="studio.copy">Copy reply</button>
@@ -561,20 +561,27 @@ async function translate(text, from, to, mode) {
 function polish(text) {
   return text.replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1").trim();
 }
+const status = document.getElementById("status");
 function clearWork() {
-  document.getElementById("source").value = "";
-  document.getElementById("reply").value = "";
+  const source = document.getElementById("source");
+  const reply = document.getElementById("reply");
   const reading = document.getElementById("reading");
   const ready = document.getElementById("ready");
+  const square = document.getElementById("copySquare");
+  source.value = "";
+  reply.value = "";
   reading.textContent = "Your reading version shows up here.";
   reading.classList.add("empty");
   ready.textContent = "The paste-back reply shows up here.";
   ready.classList.add("empty");
   document.getElementById("copyBtn").disabled = true;
-  document.getElementById("copySquare").disabled = true;
-  document.getElementById("copySquare").classList.remove("done");
-  status.textContent = t("status.clear");
-  document.getElementById("source").focus();
+  if (square) {
+    square.disabled = true;
+    square.classList.remove("done");
+    square.textContent = "Copy to paste";
+  }
+  if (status) status.textContent = t("status.clear");
+  source.focus();
 }
 document.getElementById("newBtn").addEventListener("click", clearWork);
 document.getElementById("readBtn").addEventListener("click", async () => {
