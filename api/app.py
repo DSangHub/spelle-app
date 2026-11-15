@@ -136,6 +136,27 @@ def health():
     }
 
 
+LANG_NAMES = {
+    "en": "English", "es": "Spanish", "zh-CN": "Simplified Chinese",
+    "zh-TW": "Traditional Chinese", "ja": "Japanese", "ko": "Korean",
+    "vi": "Vietnamese", "th": "Thai", "tl": "Tagalog", "id": "Indonesian",
+    "ms": "Malay", "ur": "Urdu", "my": "Burmese", "km": "Khmer", "lo": "Lao",
+    "hi": "Hindi", "ar": "Arabic", "fr": "French", "pt": "Portuguese",
+    "ru": "Russian", "de": "German", "it": "Italian", "tr": "Turkish",
+    "pl": "Polish", "nl": "Dutch", "sv": "Swedish", "da": "Danish",
+    "no": "Norwegian", "fi": "Finnish", "el": "Greek", "he": "Hebrew",
+    "fa": "Persian", "bn": "Bengali", "ta": "Tamil", "te": "Telugu",
+    "pa": "Punjabi", "gu": "Gujarati", "kn": "Kannada", "ml": "Malayalam",
+    "mr": "Marathi", "ne": "Nepali", "si": "Sinhala", "sw": "Swahili",
+    "uk": "Ukrainian", "cs": "Czech", "ro": "Romanian", "hu": "Hungarian",
+    "auto": "the source language",
+}
+
+
+def lang_name(code: str) -> str:
+    return LANG_NAMES.get(code, code)
+
+
 @app.post("/api/spelle")
 async def translate(request: Request):
     try:
@@ -159,7 +180,7 @@ async def translate(request: Request):
             "Keep any HTML tags such as <em> exactly. "
             "Keep numbers and punctuation. Return only valid JSON, no markdown."
         )
-        user = f"Translate every value from {src} to {dst}.\n\n{json.dumps(strings, ensure_ascii=False)}"
+        user = f"Translate every value from {lang_name(src)} to {lang_name(dst)}.\n\n{json.dumps(strings, ensure_ascii=False)}"
         try:
             out = grok(system, user)
         except RuntimeError as exc:
@@ -178,7 +199,7 @@ async def translate(request: Request):
         if mode == "ready"
         else "You translate a short social comment. Keep the tone. Return only the translation."
     )
-    user = f"From {src} to {dst}.\n\n{text}"
+    user = f"Translate from {lang_name(src)} into {lang_name(dst)}. Return only the {lang_name(dst)} text.\n\n{text}"
     try:
         out = grok(system, user)
     except RuntimeError as exc:
