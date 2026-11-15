@@ -195,11 +195,17 @@ async def translate(request: Request):
         return JSONResponse({"error": "Nothing to translate."}, status_code=400)
     system = (
         "You polish a short social reply. Keep names, tone, and length. "
+        "Write the whole reply in the target language. Do not leave source-language words in it. "
         "Return only the finished reply."
         if mode == "ready"
-        else "You translate a short social comment. Keep the tone. Return only the translation."
+        else "You translate a short social comment. Keep the tone. "
+        "Write the whole comment in the target language. Translate every word, including product and tracking terms. "
+        "Do not leave source-language words in the result. Return only the translation."
     )
-    user = f"Translate from {lang_name(src)} into {lang_name(dst)}. Return only the {lang_name(dst)} text.\n\n{text}"
+    user = (
+        f"Translate the following into {lang_name(dst)}. "
+        f"The result must be entirely in {lang_name(dst)}, with no {lang_name(src)} words left in it.\n\n{text}"
+    )
     try:
         out = grok(system, user)
     except RuntimeError as exc:
