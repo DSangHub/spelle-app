@@ -145,6 +145,7 @@
   }
   .copy-square:disabled { background: #c9c2b6; box-shadow: none; cursor: not-allowed; }
   .copy-square.done { background: var(--ink); }
+  .ad-slot {
     margin: 20px auto 12px; max-width: 728px; min-height: 90px;
     border: 1px dashed var(--line); border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
@@ -674,6 +675,7 @@ document.getElementById("copySquare").addEventListener("click", async () => {
   }
   status.textContent = t("status.select");
 });
+document.getElementById("ready").addEventListener("click", () => {
   const box = document.getElementById("ready");
   if (box.classList.contains("empty")) return;
   const range = document.createRange();
