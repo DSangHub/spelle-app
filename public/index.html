@@ -378,18 +378,25 @@ async function setSiteLanguage(code) {
   siteLang.disabled = true;
   if (status) status.textContent = "Switching the page…";
   try {
-    const res = await fetch("/api/spelle", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: JSON.stringify(originals), from: "en", to: code, mode: "site" })
-    });
-    const data = await res.json();
-    const pack = data.strings || (data.text ? JSON.parse(data.text) : null);
-    if (!pack) throw new Error("no pack");
+    const entries = Object.entries(originals);
+    const pack = {};
+    for (let i = 0; i < entries.length; i += 12) {
+      const chunk = Object.fromEntries(entries.slice(i, i + 12));
+      const res = await fetch("/api/spelle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: JSON.stringify(chunk), from: "en", to: code, mode: "site" })
+      });
+      const data = await res.json();
+      const part = data.strings || (data.text ? JSON.parse(data.text) : null);
+      if (!part) throw new Error("no pack");
+      Object.assign(pack, part);
+    }
     localStorage.setItem(cacheKey, JSON.stringify(pack));
     applyPack(pack);
+    if (status) status.textContent = "";
   } catch (err) {
-    status.textContent = "Could not switch the page language. Try again.";
+    if (status) status.textContent = "Could not switch the page language. Try again.";
   } finally {
     siteLang.disabled = false;
   }
