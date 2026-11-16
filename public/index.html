@@ -323,6 +323,7 @@ const SITE_LANGS = [
 ];
 const SITE_KEY = "spelle-site-lang";
 const siteLang = document.getElementById("siteLang");
+const status = document.getElementById("status");
 const originals = {};
 let sitePack = {};
 function collectOriginals() {
@@ -375,6 +376,7 @@ async function setSiteLanguage(code) {
   const cached = localStorage.getItem(cacheKey);
   if (cached) { applyPack(JSON.parse(cached)); return; }
   siteLang.disabled = true;
+  if (status) status.textContent = "Switching the page…";
   try {
     const res = await fetch("/api/spelle", {
       method: "POST",
@@ -575,7 +577,6 @@ async function translate(text, from, to, mode) {
 function polish(text) {
   return text.replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1").trim();
 }
-const status = document.getElementById("status");
 function clearWork() {
   const source = document.getElementById("source");
   const reply = document.getElementById("reply");

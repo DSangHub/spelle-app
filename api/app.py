@@ -160,7 +160,7 @@ async def translate(request: Request):
         body = await request.json()
     except Exception:
         return JSONResponse({"error": "Could not read that."}, status_code=400)
-    text = str(body.get("text") or "")[:MAX_CHARS]
+    text = str(body.get("text") or "")[: (8000 if mode == "site" else MAX_CHARS)]
     src = str(body.get("from") or "auto")[:16]
     dst = str(body.get("to") or "en")[:16]
     mode = str(body.get("mode") or "read")
