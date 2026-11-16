@@ -43,6 +43,15 @@ def mark():
     return FileResponse(PUBLIC / "mark.jpg")
 
 
+@app.get("/packs/{name}.json")
+def pack(name: str):
+    safe = name.replace("/", "")
+    file = PUBLIC / "packs" / f"{safe}.json"
+    if file.exists():
+        return FileResponse(file, media_type="application/json")
+    return JSONResponse({"error": "No pack."}, status_code=404)
+
+
 @app.get("/privacy")
 @app.get("/privacy.html")
 def privacy():

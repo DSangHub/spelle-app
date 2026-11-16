@@ -378,6 +378,14 @@ async function setSiteLanguage(code) {
   siteLang.disabled = true;
   if (status) status.textContent = "Switching the page…";
   try {
+    const packRes = await fetch("/packs/" + code + ".json");
+    if (packRes.ok) {
+      const pack = await packRes.json();
+      localStorage.setItem(cacheKey, JSON.stringify(pack));
+      applyPack(pack);
+      if (status) status.textContent = "";
+      return;
+    }
     const entries = Object.entries(originals);
     const pack = {};
     for (let i = 0; i < entries.length; i += 12) {
