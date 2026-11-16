@@ -407,12 +407,25 @@ const GEO_LANG = {
   PT:"pt", BR:"pt", AO:"pt", MZ:"pt", RU:"ru", DE:"de", AT:"de", IT:"it", TR:"tr", PL:"pl"
 };
 async function detectNativeLanguage() {
-  try {
-    const res = await fetch("https://ipapi.co/json/", { headers: { Accept: "application/json" } });
-    const data = await res.json();
-    const code = GEO_LANG[(data.country_code || "").toUpperCase()];
-    if (code) return code;
-  } catch (err) { /* fall through */ }
+  const sources = [
+    async () => {
+      const res = await fetch("https://ipwho.is/");
+      const data = await res.json();
+      return data && data.success !== false ? data.country_code : "";
+    },
+    async () => {
+      const res = await fetch("https://ipapi.co/json/", { headers: { Accept: "application/json" } });
+      const data = await res.json();
+      return data && !data.error ? data.country_code : "";
+    }
+  ];
+  for (const source of sources) {
+    try {
+      const country = (await source() || "").toUpperCase();
+      const code = GEO_LANG[country];
+      if (code) return code;
+    } catch (err) { /* try the next source */ }
+  }
   const nav = (navigator.language || "en").toLowerCase();
   const match = SITE_LANGS.find(([c]) => nav === c.toLowerCase() || nav.startsWith(c.split("-")[0]));
   return match ? match[0] : "en";
