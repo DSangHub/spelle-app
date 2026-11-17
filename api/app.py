@@ -73,7 +73,8 @@ STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
 SITE = os.environ.get("SPELLE_SITE", "https://spelle.app").rstrip("/")
 CURRENCY = os.environ.get("STRIPE_CURRENCY", "usd")
-AMOUNT = int(os.environ.get("STRIPE_AMOUNT", "499"))
+AMOUNT = int(os.environ.get("STRIPE_AMOUNT", "995"))
+BUSINESS_SEATS = int(os.environ.get("BUSINESS_SEATS", "10"))
 
 
 def db():
@@ -310,7 +311,7 @@ def mark_paid(email: str, customer: str = "") -> None:
         conn.execute(
             """
             update profiles
-               set plan = 'paid',
+               set plan = 'business',
                    paid_until = now() + interval '30 days',
                    stripe_customer = coalesce(nullif(%s, ''), stripe_customer)
              where email = %s
@@ -349,15 +350,17 @@ async def pay(request: Request):
         return JSONResponse({"error": "Need a valid email."}, status_code=400)
     try:
         session = stripe_form({
-            "mode": "payment",
+            "mode": "subscription",
             "customer_email": email,
             "success_url": f"{SITE}/?paid=1",
             "cancel_url": f"{SITE}/?paid=0",
             "metadata[email]": email,
+            "metadata[plan]": "business",
             "line_items[0][quantity]": "1",
             "line_items[0][price_data][currency]": CURRENCY,
             "line_items[0][price_data][unit_amount]": str(AMOUNT),
-            "line_items[0][price_data][product_data][name]": "Spelle",
+            "line_items[0][price_data][recurring][interval]": "month",
+            "line_items[0][price_data][product_data][name]": "Spelle Business — 10 accounts",
         })
     except RuntimeError as exc:
         return JSONResponse({"error": str(exc)}, status_code=503)
@@ -366,6 +369,8 @@ async def pay(request: Request):
         "session_id": session.get("id"),
         "amount": AMOUNT,
         "currency": CURRENCY,
+        "plan": "business",
+        "seats": BUSINESS_SEATS,
     }
 
 
