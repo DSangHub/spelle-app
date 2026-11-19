@@ -39,6 +39,31 @@
   }
   a { color: inherit; }
   .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+  .page {
+    display: grid;
+    grid-template-columns: 1fr min(1120px, 100%) 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .rail {
+    position: sticky;
+    top: 16px;
+    min-height: 600px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  @media (max-width: 1280px) {
+    .page { grid-template-columns: 1fr; }
+    .rail { display: none; }
+  }
   nav {
     display: flex; align-items: center; justify-content: space-between;
     padding: 22px 0 8px;
@@ -185,7 +210,9 @@
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="page">
+    <aside class="rail">Ad</aside>
+    <div class="wrap">
     <nav>
       <a class="brand" href="#top"><img src="/mark.jpg" alt="Spelle" /><b>Spelle</b></a>
       <div class="nav-links">
@@ -720,5 +747,8 @@ document.getElementById("ready").addEventListener("click", () => {
   sel.addRange(range);
 });
 </script>
+    </div>
+    <aside class="rail">Ad</aside>
+  </div>
 </body>
 </html>
