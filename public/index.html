@@ -41,13 +41,16 @@
   .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
   .page {
     display: grid;
-    grid-template-columns: 1fr min(1120px, 100%) 1fr;
+    grid-template-columns: 180px minmax(0, 1120px) 180px;
+    justify-content: center;
     gap: 16px;
     align-items: start;
+    padding: 0 16px;
   }
   .rail {
     position: sticky;
     top: 16px;
+    width: 180px;
     min-height: 600px;
     border: 1px dashed var(--line);
     border-radius: 12px;
